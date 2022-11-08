@@ -1,5 +1,15 @@
 import { useState, useEffect } from "react";
 
+import { useDispatch, useSelector } from "react-redux";
+
+import { useNavigate } from "react-router-dom";
+
+import { toast } from "react-toastify";
+
+import { register, reset } from "../features/auth/authSlice";
+
+import Spinner from "../components/Spinner";
+
 import { FaUser } from "react-icons/fa";
 
 function Register() {
@@ -9,6 +19,26 @@ function Register() {
     password: "",
     confirmPassword: "",
   });
+
+  const navigate = useNavigate();
+
+  const dispatch = useDispatch();
+
+  const { user, isLoading, isError, isSuccess, message } = useSelector(
+    (state) => state.auth
+  );
+
+  useEffect(() => {
+    if (isError) {
+      toast.error(message);
+    }
+
+    if (isSuccess || user) {
+      navigate("/");
+    }
+
+    dispatch(reset());
+  }, [isError, isSuccess, user, message, navigate, dispatch]);
 
   const { name, email, password, confirmPassword } = formData;
 
@@ -21,7 +51,23 @@ function Register() {
 
   const onSubmit = (e) => {
     e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+    } else {
+      const userData = {
+        name,
+        email,
+        password,
+      };
+
+      dispatch(register(userData));
+    }
   };
+
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <>
